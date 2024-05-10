@@ -297,9 +297,12 @@ public class HDFSChunkStorage extends BaseChunkStorage {
         Exceptions.checkNotClosed(this.closed.get(), this);
         Preconditions.checkState(this.fileSystem == null, "HDFSStorage has already been initialized.");
         Configuration conf = new Configuration();
-        conf.set("fs.default.name", this.config.getHdfsHostURL());
-        conf.set("fs.default.fs", this.config.getHdfsHostURL());
-        conf.set("fs.hdfs.impl", this.config.getHdfsImpl());
+        URI hdfsUri = "hdfs://IP/";
+        URI hdfsGEDS = "geds://bucket/";
+        conf.set("fs.default.name", "geds);
+        conf.set("fs.default.fs", "geds");
+        conf.set("fs.geds.impl", "com.ibm.geds.hdfs.GEDSHadoopFileSystem");
+        conf.set("fs.geds.metadataserver", "geds-service:40001");
 
         // We do not want FileSystem to cache clients/instances based on target URI.
         // This allows us to close instances without affecting other clients/instances. This should not affect performance.
@@ -309,13 +312,13 @@ public class HDFSChunkStorage extends BaseChunkStorage {
             conf.set("dfs.client.block.write.replace-datanode-on-failure.policy", "NEVER");
         }
 
-        this.fileSystem = openFileSystem(conf);
+        this.fileSystem = openFileSystem(uri, conf);
         log.info("Initialized (HDFSHost = '{}'", this.config.getHdfsHostURL());
         log.info("Initialized (HDFS Implementation = '{}'", this.config.getHdfsImpl());
     }
 
-    protected FileSystem openFileSystem(Configuration conf) throws IOException {
-        return FileSystem.get(conf);
+    protected FileSystem openFileSystem(URI uri, Configuration conf) throws IOException {
+        return FileSystem.get(uri, conf);
     }
     //endregion
 
